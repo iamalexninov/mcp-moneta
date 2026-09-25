@@ -1,0 +1,51 @@
+# Local/staging stack: SQL Server 2022 + gateway + MCP server + Caddy (TLS).
+#   cp .env.example .env   # fill in secrets
+#   docker compose up -d --build
+# See docs/02-running.md.
+services:
+  mssql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD:?set in .env}
+    volumes: [mssql-data:/var/opt/mssql]
+    networks: [backend]
+    # not published to the host: only the gateway can reach it
+
+  gateway:
+    build: .
+    env_file: .env
+    environment:
+      GATEWAY_ENVIRONMENT: ${GATEWAY_ENVIRONMENT:-dev}
+    volumes: [gateway-keys:/app/keys]
+    depends_on: [mssql]
+    networks: [backend, frontend]
+
+  mcp:
+    build: .
+    command: ["python", "-m", "mcp_server.server"]
+    env_file: .env
+    environment:
+      MCP_HOST: 0.0.0.0
+      MCP_GATEWAY_INTERNAL_URL: http://gateway:8000
+    depends_on: [gateway]
+    networks: [frontend]
+
+  caddy:
+    image: caddy:2
+    ports: ["443:443", "80:80"]
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+    env_file: .env
+    depends_on: [gateway, mcp]
+    networks: [frontend]
+
+networks:
+  backend: {internal: true}
+  frontend: {}
+
+volumes:
+  mssql-data:
+  gateway-keys:
+  caddy-data:

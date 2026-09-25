@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Dashboard</h1>
+<div class="grid4">
+  <div class="stat"><div class="n">{{ stats.users }}</div><div class="l">Users</div></div>
+  <div class="stat"><div class="n">{{ stats.connections }}</div><div class="l">Active AI connections</div></div>
+  <div class="stat"><div class="n">{{ stats.events_24h }}</div><div class="l">Audit events (24h)</div></div>
+  <div class="stat {% if stats.denied_24h %}bad{% endif %}"><div class="n">{{ stats.denied_24h }}</div><div class="l">Denied (24h)</div></div>
+</div>
+<div class="card">
+  <h2>Your MCP connector URL</h2>
+  <p>Give this URL to any MCP-capable AI assistant (Claude.ai, ChatGPT, Cursor, Claude Desktop/Code):</p>
+  <pre>{{ settings.mcp_resource_url }}</pre>
+  <p class="muted">Every user signs in with their own Moneta account and chooses permissions. You can revoke any connection instantly under <a href="/admin/connections">Connections</a>.</p>
+</div>
+{% endblock %}

@@ -1,0 +1,31 @@
+# Automatic HTTPS (Let's Encrypt). Set PUBLIC_HOST in .env, e.g. ai.moneta-client.bg
+# Single public origin:  /mcp -> MCP server, everything else -> gateway.
+{$PUBLIC_HOST} {
+	encode gzip
+
+	# Optional: only allow Anthropic's egress range to reach the MCP endpoint.
+	# Claude.ai traffic comes from 160.79.104.0/21. Keep /oauth/* reachable
+	# for users' browsers.
+	# @notanthropic { path /mcp*
+	#   not remote_ip 160.79.104.0/21 }
+	# respond @notanthropic 403
+
+	handle /mcp* {
+		reverse_proxy mcp:8001
+	}
+	handle /.well-known/oauth-protected-resource* {
+		reverse_proxy mcp:8001
+	}
+	handle {
+		reverse_proxy gateway:8000
+	}
+
+	header {
+		Strict-Transport-Security "max-age=63072000; includeSubDomains"
+		-Server
+	}
+	log {
+		output stdout
+		format json
+	}
+}

@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block mainclass %}center{% endblock %}
+{% block content %}
+<div class="card narrow">
+  <h1>Request rejected</h1>
+  <div class="alert">{{ message }}</div>
+  <p class="muted">For your security, the request was not forwarded. Close this window and reconnect from your AI assistant.</p>
+</div>
+{% endblock %}

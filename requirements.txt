@@ -1,0 +1,24 @@
+# Web / API
+fastapi>=0.115,<1.0
+uvicorn[standard]>=0.30
+jinja2>=3.1
+python-multipart>=0.0.9
+pydantic>=2.7
+pydantic-settings>=2.3
+httpx>=0.27
+
+# Database (SQLite for dev; Microsoft SQL Server via pyodbc + ODBC Driver 18)
+sqlalchemy>=2.0
+pyodbc>=5.1
+
+# Security
+pyjwt[crypto]>=2.8
+cryptography>=42
+argon2-cffi>=23.1
+pyotp>=2.9
+
+# MCP server (the SDK is v2: FastMCP was renamed MCPServer)
+mcp>=2.2,<3
+
+# Tests
+pytest>=8

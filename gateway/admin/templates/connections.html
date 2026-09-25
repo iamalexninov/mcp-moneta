@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>AI connections</h1>
+<p class="muted">Each row is one user's consent for one AI client. Revoking takes effect on the very next tool call (the API checks the connection on every request).</p>
+<div class="card">
+  <table>
+    <tr><th>User</th><th>AI client</th><th>Scopes</th><th>Created</th><th>Last used</th><th>Status</th><th></th></tr>
+    {% for g in grants %}
+    <tr>
+      <td>{{ g.user.email }}</td>
+      <td>{{ clients[g.client_id].client_name if g.client_id in clients else g.client_id }}<br><span class="muted small">{{ g.client_id }}</span></td>
+      <td class="small">{% for s in g.scopes.split() %}<code>{{ s }}</code> {% endfor %}</td>
+      <td class="small">{{ g.created_at.strftime("%Y-%m-%d %H:%M") }}</td>
+      <td class="small">{{ g.last_used_at.strftime("%Y-%m-%d %H:%M") if g.last_used_at else "—" }}</td>
+      <td>{% if g.revoked_at %}<span class="pill bad" title="{{ g.revoked_reason }}">revoked</span>{% else %}<span class="pill ok">active</span>{% endif %}</td>
+      <td>{% if not g.revoked_at %}
+        <form method="post" action="/admin/connections/{{ g.id }}/revoke" class="inline">
+          <input type="hidden" name="csrf_token" value="{{ admin.csrf_token }}">
+          <button class="danger">Revoke</button>
+        </form>{% endif %}</td>
+    </tr>
+    {% else %}
+    <tr><td colspan="7" class="muted">No AI connections yet. See <a href="/admin/agents">AI Agents</a>.</td></tr>
+    {% endfor %}
+  </table>
+</div>
+{% endblock %}

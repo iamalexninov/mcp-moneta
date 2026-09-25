@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Authorize {{ client.client_name }}{% endblock %}
+{% block mainclass %}center{% endblock %}
+{% block content %}
+<div class="card narrow">
+  <h1>Connect an AI assistant to Moneta</h1>
+  <p><strong>{{ client.client_name }}</strong> is asking to access Moneta on your behalf.</p>
+  <p class="muted">After approval you will be sent to <code>{{ redirect_host }}</code>.
+  {% if client.registered_via == "dcr" %}This client registered itself automatically; only approve if you started this connection.{% endif %}</p>
+  {% if is_loopback %}<div class="banner warn">This connection returns to a program on your own computer ({{ redirect_host }}). Approve only if you just started it from Claude Code, Cursor or a similar tool.</div>{% endif %}
+  {% if error %}<div class="alert">{{ error }}</div>{% endif %}
+  <form method="post" action="/oauth/authorize">
+    {% for k, v in params.items() %}<input type="hidden" name="{{ k }}" value="{{ v }}">{% endfor %}
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <label>Email <input type="email" name="email" required maxlength="254" autocomplete="username"></label>
+    <label>Password <input type="password" name="password" required maxlength="256" autocomplete="current-password"></label>
+    <label>Authenticator code <span class="muted">(if MFA is enabled)</span>
+      <input name="totp" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code"></label>
+    <fieldset>
+      <legend>Permissions to grant</legend>
+      <p class="muted small">Untick anything the assistant does not need. Your role limits what can be granted.</p>
+      {% for key, desc in scopes %}{% if key != "mcp" %}
+      <label class="check"><input type="checkbox" name="scopes" value="{{ key }}" {% if not key.endswith(':write') %}checked{% endif %}>
+        <span><code>{{ key }}</code> {{ desc }}</span></label>
+      {% endif %}{% endfor %}
+    </fieldset>
+    <div class="row">
+      <button class="primary" name="action" value="approve">Sign in and approve</button>
+      <button class="secondary" name="action" value="deny" formnovalidate>Deny</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

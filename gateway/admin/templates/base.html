@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <title>{% block title %}Moneta AI Gateway{% endblock %}</title>
+  <link rel="stylesheet" href="/static/admin.css">
+</head>
+<body>
+{% if admin %}
+<header class="topbar">
+  <div class="brand">Moneta <span>AI Gateway</span></div>
+  <nav>
+    <a href="/admin">Dashboard</a>
+    <a href="/admin/agents">AI Agents</a>
+    <a href="/admin/connections">Connections</a>
+    <a href="/admin/users">Users</a>
+    <a href="/admin/audit">Audit log</a>
+    <a href="/admin/mfa">MFA</a>
+  </nav>
+  <form method="post" action="/admin/logout" class="inline">
+    <input type="hidden" name="csrf_token" value="{{ admin.csrf_token }}">
+    <span class="muted">{{ admin.user.email }} · {{ admin.user.tenant.name }}</span>
+    <button class="link">Sign out</button>
+  </form>
+</header>
+{% if not admin.user.mfa_secret_enc %}
+<div class="banner warn">Multi-factor authentication is not enabled for your account. <a href="/admin/mfa">Enable it now</a>. It is mandatory in production.</div>
+{% endif %}
+{% endif %}
+<main class="{% block mainclass %}container{% endblock %}">
+{% block content %}{% endblock %}
+</main>
+</body>
+</html>

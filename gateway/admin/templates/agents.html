@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>AI Agents</h1>
+<p>All assistants connect to the same MCP gateway: <code>{{ settings.mcp_resource_url }}</code>. Access is always per user, through OAuth 2.1 sign-in on this server.</p>
+<div class="grid2">
+  <div class="card">
+    <h2>Claude.ai <span class="pill ok">Supported</span></h2>
+    <p class="muted small">Free plan: 1 custom connector. Pro/Max/Team/Enterprise: multiple.</p>
+    <ol>
+      <li>Open <strong>Customize → Connectors</strong> → <strong>Add custom connector</strong>.</li>
+      <li>Name: <code>Moneta</code>. URL: <code>{{ settings.mcp_resource_url }}</code>.</li>
+      <li>Leave OAuth client empty (automatic registration). Click <strong>Add</strong>, then <strong>Connect</strong>.</li>
+      <li>Sign in here with your Moneta account and approve the permissions.</li>
+      <li>In a chat, enable the connector from the <strong>+ → Connectors</strong> menu.</li>
+    </ol>
+  </div>
+  <div class="card">
+    <h2>Claude Desktop / Claude Code <span class="pill ok">Supported</span></h2>
+    <p>Desktop uses the same connector as Claude.ai (added once, available everywhere). Claude Code:</p>
+    <pre>claude mcp add --transport http moneta {{ settings.mcp_resource_url }}</pre>
+    <p class="muted small">Then run <code>/mcp</code> in Claude Code to sign in.</p>
+  </div>
+  <div class="card">
+    <h2>ChatGPT <span class="pill">Beta</span></h2>
+    <ol>
+      <li>Settings → Apps &amp; Connectors → Advanced → enable <strong>Developer mode</strong> (plan-dependent).</li>
+      <li>Create connector with the MCP URL above, authentication <strong>OAuth</strong>.</li>
+    </ol>
+  </div>
+  <div class="card">
+    <h2>Cursor <span class="pill">Beta</span></h2>
+    <p>Add to <code>~/.cursor/mcp.json</code>:</p>
+    <pre>{ "mcpServers": { "moneta": { "url": "{{ settings.mcp_resource_url }}" } } }</pre>
+  </div>
+</div>
+<div class="card">
+  <h2>Available tools</h2>
+  <table>
+    <tr><th>Tool</th><th>Scope</th><th>Effect</th></tr>
+    <tr><td><code>sales_report</code></td><td><code>reports:read</code></td><td>Read-only aggregates by product, customer, category or month</td></tr>
+    <tr><td><code>search_products</code> / <code>search_customers</code></td><td><code>products:read</code> / <code>customers:read</code></td><td>Read-only lookups</td></tr>
+    <tr><td><code>import_products</code></td><td><code>products:write</code></td><td>Preview by default (dry run); writes only when confirmed</td></tr>
+    <tr><td><code>create_order</code></td><td><code>orders:write</code></td><td>Creates a <em>draft</em> order, prices taken from Moneta, idempotent</td></tr>
+  </table>
+</div>
+{% endblock %}

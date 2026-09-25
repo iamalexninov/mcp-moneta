@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Users</h1>
+{% if error %}<div class="alert">{{ error }}</div>{% endif %}
+<div class="card">
+  <table>
+    <tr><th>Email</th><th>Name</th><th>Role</th><th>MFA</th><th>Status</th><th>Last login</th><th></th></tr>
+    {% for u in users %}
+    <tr>
+      <td>{{ u.email }}</td><td>{{ u.full_name }}</td>
+      <td>
+        <form method="post" action="/admin/users/{{ u.id }}/update" class="inline">
+          <input type="hidden" name="csrf_token" value="{{ admin.csrf_token }}">
+          <input type="hidden" name="action" value="role">
+          <select name="role" {% if u.id == admin.user.id %}disabled{% endif %}>
+            {% for r in roles %}<option value="{{ r }}" {% if r == u.role %}selected{% endif %}>{{ r }}</option>{% endfor %}
+          </select>
+          {% if u.id != admin.user.id %}<button class="link">Save</button>{% endif %}
+        </form>
+      </td>
+      <td>{% if u.mfa_secret_enc %}<span class="pill ok">on</span>{% else %}<span class="pill">off</span>{% endif %}</td>
+      <td>{% if u.is_active %}<span class="pill ok">active</span>{% else %}<span class="pill bad">disabled</span>{% endif %}
+          {% if u.locked_until %}<span class="pill bad">locked</span>{% endif %}</td>
+      <td class="small">{{ u.last_login_at or "never" }}</td>
+      <td>
+        {% if u.id != admin.user.id %}
+        {% for action, label in [("toggle", "Disable" if u.is_active else "Enable"), ("unlock", "Unlock"), ("reset_mfa", "Reset MFA")] %}
+        <form method="post" action="/admin/users/{{ u.id }}/update" class="inline">
+          <input type="hidden" name="csrf_token" value="{{ admin.csrf_token }}">
+          <button class="link" name="action" value="{{ action }}">{{ label }}</button>
+        </form>
+        {% endfor %}
+        {% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+<div class="card">
+  <h2>Add user</h2>
+  <form method="post" action="/admin/users" class="grid-form">
+    <input type="hidden" name="csrf_token" value="{{ admin.csrf_token }}">
+    <label>Email <input type="email" name="email" required maxlength="254"></label>
+    <label>Full name <input name="full_name" required maxlength="200"></label>
+    <label>Initial password (min 12 chars) <input type="password" name="password" required minlength="12" maxlength="256" autocomplete="new-password"></label>
+    <label>Role <select name="role">{% for r in roles %}<option>{{ r }}</option>{% endfor %}</select></label>
+    <button class="primary">Create user</button>
+  </form>
+  <h3>Role permissions</h3>
+  <table>{% for r, s in role_scopes.items() %}<tr><td><strong>{{ r }}</strong></td><td>{% for x in s|sort %}<code>{{ x }}</code> {% endfor %}</td></tr>{% endfor %}</table>
+</div>
+{% endblock %}

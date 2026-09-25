@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Audit log</h1>
+{% if chain_ok %}<div class="banner ok">Hash chain verified: no audit record has been altered or deleted.</div>
+{% else %}<div class="banner bad">Hash chain BROKEN at record #{{ broken_at }}. The audit trail may have been tampered with. Investigate immediately.</div>{% endif %}
+<div class="card">
+  <table class="small">
+    <tr><th>#</th><th>Time (UTC)</th><th>Action</th><th>Outcome</th><th>User</th><th>Client</th><th>IP</th><th>Detail</th></tr>
+    {% for r in rows %}
+    <tr>
+      <td>{{ r.id }}</td><td>{{ r.ts.strftime("%Y-%m-%d %H:%M:%S") }}</td><td><code>{{ r.action }}</code></td>
+      <td><span class="pill {{ 'ok' if r.outcome == 'success' else 'bad' }}">{{ r.outcome }}</span></td>
+      <td>{{ r.user_id or "" }}</td><td class="trunc">{{ r.client_id or "" }}</td><td>{{ r.ip or "" }}</td>
+      <td class="trunc"><code>{{ r.detail }}</code></td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+{% endblock %}

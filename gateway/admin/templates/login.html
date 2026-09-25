@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block mainclass %}center{% endblock %}
+{% block content %}
+<div class="card narrow">
+  <h1>Administrator sign in</h1>
+  <p class="muted">Moneta AI Gateway</p>
+  {% if error %}<div class="alert">{{ error }}</div>{% endif %}
+  <form method="post" action="/admin/login" autocomplete="on">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <label>Email <input type="email" name="email" required maxlength="254" autocomplete="username"></label>
+    <label>Password <input type="password" name="password" required maxlength="256" autocomplete="current-password"></label>
+    <label>Authenticator code <span class="muted">(if MFA is enabled)</span>
+      <input name="totp" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code"></label>
+    <button class="primary">Sign in</button>
+  </form>
+</div>
+{% endblock %}
