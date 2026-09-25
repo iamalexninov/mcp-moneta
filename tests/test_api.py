@@ -139,3 +139,8 @@ def test_admin_requires_login_and_csrf(client):
     assert client.get("/admin").status_code == 303
     r = client.post("/admin/login", data={"email": "admin@a.bg", "password": "x" * 12, "csrf_token": "forged"})
     assert "Session expired" in r.text
+
+
+def test_chunked_body_without_length_rejected(client):
+    r = client.post("/api/v1/orders", content=iter([b"{}"]), headers={"content-type": "application/json"})
+    assert r.status_code == 411

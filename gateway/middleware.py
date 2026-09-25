@@ -20,6 +20,9 @@ class SecurityMiddleware(BaseHTTPMiddleware):
         length = request.headers.get("content-length")
         if length and (not length.isdigit() or int(length) > MAX_BODY_BYTES):
             return JSONResponse({"detail": "Request body too large"}, status_code=413)
+        if request.method in ("POST", "PUT", "PATCH") and length is None:
+            # chunked bodies would bypass the size cap; every legitimate client sends a length
+            return JSONResponse({"detail": "Content-Length required"}, status_code=411)
 
         response = await call_next(request)
         h = response.headers

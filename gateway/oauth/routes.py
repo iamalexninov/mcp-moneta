@@ -291,7 +291,8 @@ async def authorize_submit(request: Request, db: Session = Depends(get_db)):
 
 
 # -------------------------------------------------------------------- token
-@router.post("/oauth/token", dependencies=[Depends(limit("token", 60, 60))])
+# 300/min per IP: the MCP server performs token exchange for all its users from one IP
+@router.post("/oauth/token", dependencies=[Depends(limit("token", 300, 60))])
 def token(
     request: Request,
     grant_type: str = Form(...),
