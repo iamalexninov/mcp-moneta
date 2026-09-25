@@ -58,6 +58,7 @@ Admin panel: http://localhost:8000/admin. To connect **Claude.ai** you need publ
 
 | # | Document | What's inside |
 |---|---|---|
+| 0 | [**Local quick start**](docs/00-local-quickstart.md) | Step-by-step: run and test everything on your PC (Windows/macOS/Linux), then Claude.ai and SQL Server |
 | 1 | [Architecture](docs/01-architecture.md) | Components, request flow, design decisions, how it's built |
 | 2 | [Running & deployment](docs/02-running.md) | Local, tests, Docker Compose, production |
 | 3 | [**Security: authentication & authorization research**](docs/03-security-authn-authz.md) | Threat model, standards, every control and why, alternatives considered, AI-specific risks, compliance |
