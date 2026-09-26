@@ -141,6 +141,12 @@ def test_admin_requires_login_and_csrf(client):
     assert "Session expired" in r.text
 
 
-def test_chunked_body_without_length_rejected(client):
-    r = client.post("/api/v1/orders", content=iter([b"{}"]), headers={"content-type": "application/json"})
-    assert r.status_code == 411
+def test_chunked_body_accepted_but_size_capped(client):
+    # tunnels/HTTP2 proxies forward bodies without Content-Length: must work
+    import json as _json
+    body = _json.dumps({"redirect_uris": ["https://claude.ai/api/mcp/auth_callback"]}).encode()
+    r = client.post("/oauth/register", content=iter([body]), headers={"content-type": "application/json"})
+    assert r.status_code == 201
+    big = iter([b"x" * 600_000, b"x" * 600_000])
+    r = client.post("/oauth/register", content=big, headers={"content-type": "application/json"})
+    assert r.status_code == 413

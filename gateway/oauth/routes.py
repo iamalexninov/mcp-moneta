@@ -11,6 +11,8 @@ Implements what MCP clients such as Claude.ai, ChatGPT and Cursor need:
 """
 
 import json
+import logging
+import time
 import uuid
 from datetime import timedelta
 from pathlib import Path
@@ -19,7 +21,7 @@ from urllib.parse import urlencode, urlparse
 from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ValidationError
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -35,6 +37,7 @@ from ..security.ratelimit import client_ip, limit
 from ..security.tokens import TokenError, issue_access_token, verify_access_token
 
 router = APIRouter(tags=["oauth"])
+log = logging.getLogger("gateway.oauth")
 templates = Jinja2Templates(directory=str(Path(__file__).parent.parent / "admin" / "templates"))
 
 TOKEN_EXCHANGE = "urn:ietf:params:oauth:grant-type:token-exchange"
@@ -45,6 +48,7 @@ OAUTH_CSRF_COOKIE = "oauth_bind"
 
 # ----------------------------------------------------------------- helpers
 def oauth_error(error: str, description: str, status: int = 400) -> JSONResponse:
+    log.warning("OAuth error %s: %s", error, description)
     return JSONResponse(
         {"error": error, "error_description": description},
         status_code=status,
@@ -141,44 +145,66 @@ def jwks_endpoint():
 
 # -------------------------------------------------------- dynamic registration
 class RegistrationRequest(BaseModel):
-    redirect_uris: list[str] = Field(min_length=1, max_length=5)
-    client_name: str = Field(default="Unnamed AI client", max_length=100)
-    token_endpoint_auth_method: str = "none"
-    grant_types: list[str] = ["authorization_code", "refresh_token"]
-    response_types: list[str] = ["code"]
+    redirect_uris: list[str] = Field(min_length=1, max_length=10)
+    client_name: str | None = None
+    token_endpoint_auth_method: str | None = None
+    grant_types: list[str] | None = None
+    response_types: list[str] | None = None
     scope: str | None = None
 
 
-@router.post("/oauth/register", dependencies=[Depends(limit("dcr", 10, 3600))])
-def register_client(body: RegistrationRequest, request: Request, db: Session = Depends(get_db)):
-    if body.token_endpoint_auth_method != "none":
-        return oauth_error("invalid_client_metadata", "Only public clients with PKCE may self-register")
-    if not set(body.grant_types) <= {"authorization_code", "refresh_token"} or body.response_types != ["code"]:
-        return oauth_error("invalid_client_metadata", "Unsupported grant or response type")
+def _register_denied(db: Session, request: Request, error: str, description: str, **detail) -> JSONResponse:
+    log.warning("DCR rejected: %s (%s) %s", error, description, detail)
+    audit.record(db, "oauth.register", "denied", ip=client_ip(request), reason=error, **detail)
+    return oauth_error(error, description)
+
+
+@router.post("/oauth/register", dependencies=[Depends(limit("dcr", 30, 3600))])
+async def register_client(request: Request, db: Session = Depends(get_db)):
+    try:
+        body = RegistrationRequest.model_validate(await request.json())
+    except (ValueError, ValidationError) as e:
+        return _register_denied(db, request, "invalid_client_metadata", "Malformed registration request",
+                                parse_error=str(e)[:300])
+
+    # RFC 7591 s3.2.1: the server may replace requested metadata. Every self-registered
+    # client becomes a PUBLIC client (no secret) that must use PKCE, whatever it asked for.
+    grant_types = [g for g in (body.grant_types or ["authorization_code", "refresh_token"])
+                   if g in ("authorization_code", "refresh_token")]
+    if "authorization_code" not in grant_types:
+        return _register_denied(db, request, "invalid_client_metadata", "authorization_code grant is required",
+                                grant_types=body.grant_types)
+    if body.response_types and "code" not in body.response_types:
+        return _register_denied(db, request, "invalid_client_metadata", "response_type code is required",
+                                response_types=body.response_types)
     for uri in body.redirect_uris:
         if len(uri) > 500 or not redirect_allowed_for_dcr(uri):
-            audit.record(db, "oauth.register", "denied", ip=client_ip(request), redirect_uri=uri[:200])
-            return oauth_error("invalid_redirect_uri", "Redirect URI is not on the gateway allow-list")
+            return _register_denied(db, request, "invalid_redirect_uri",
+                                    "Redirect URI is not on the gateway allow-list", redirect_uri=uri[:200])
 
+    name = "".join(ch for ch in (body.client_name or "Unnamed AI client") if ch.isprintable())[:100]
     client = OAuthClient(
         client_id=f"dcr_{uuid.uuid4().hex}",
-        client_name="".join(ch for ch in body.client_name if ch.isprintable())[:100],
+        client_name=name or "Unnamed AI client",
         redirect_uris=json.dumps(body.redirect_uris),
         client_type="public",
         registered_via="dcr",
     )
     db.add(client)
-    audit.record(db, "oauth.register", client_id=client.client_id, ip=client_ip(request), name=client.client_name)
+    audit.record(db, "oauth.register", client_id=client.client_id, ip=client_ip(request), name=client.client_name,
+                 requested_auth_method=body.token_endpoint_auth_method)
     return JSONResponse(
         {
             "client_id": client.client_id,
+            "client_id_issued_at": int(time.time()),
             "client_name": client.client_name,
             "redirect_uris": body.redirect_uris,
             "token_endpoint_auth_method": "none",
-            "grant_types": body.grant_types,
+            "grant_types": grant_types,
             "response_types": ["code"],
         },
         status_code=201,
+        headers={"Cache-Control": "no-store"},
     )
 
 

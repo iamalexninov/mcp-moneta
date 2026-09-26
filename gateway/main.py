@@ -15,7 +15,7 @@ from .admin.routes import router as admin_router
 from .api.routes import router as api_router
 from .config import get_settings
 from .db import init_db
-from .middleware import SecurityMiddleware
+from .middleware import BodySizeLimitMiddleware, SecurityMiddleware
 from .oauth.routes import router as oauth_router
 from .security.keys import load_keys
 
@@ -39,6 +39,7 @@ def create_app() -> FastAPI:
         openapi_url="/openapi.json" if s.is_dev else None,
     )
     app.add_middleware(SecurityMiddleware)
+    app.add_middleware(BodySizeLimitMiddleware)
     # No CORS middleware on purpose: no browser origin needs to call this API
     # directly (AI clients call from their servers; the admin panel is same-origin).
 

@@ -19,9 +19,23 @@ def test_dcr_rejects_unlisted_redirect(client):
     assert r.status_code == 400 and r.json()["error"] == "invalid_redirect_uri"
 
 
-def test_dcr_rejects_confidential_self_registration(client):
-    r = client.post("/oauth/register", json={"redirect_uris": [REDIRECT], "token_endpoint_auth_method": "client_secret_basic"})
-    assert r.status_code == 400
+def test_dcr_downgrades_confidential_request_to_public(client):
+    # RFC 7591: the server may replace requested metadata; no secret is ever issued
+    r = client.post("/oauth/register", json={"redirect_uris": [REDIRECT], "token_endpoint_auth_method": "client_secret_post",
+                                             "client_name": "x" * 300, "grant_types": ["authorization_code", "refresh_token"]})
+    assert r.status_code == 201
+    assert r.json()["token_endpoint_auth_method"] == "none" and "client_secret" not in r.json()
+    assert len(r.json()["client_name"]) == 100
+
+
+def test_dcr_requires_authorization_code_grant(client):
+    r = client.post("/oauth/register", json={"redirect_uris": [REDIRECT], "grant_types": ["client_credentials"]})
+    assert r.status_code == 400 and r.json()["error"] == "invalid_client_metadata"
+
+
+def test_dcr_malformed_body_is_oauth_error(client):
+    r = client.post("/oauth/register", content=b"not json", headers={"content-type": "application/json"})
+    assert r.status_code == 400 and r.json()["error"] == "invalid_client_metadata"
 
 
 def test_loopback_redirect_any_port(client):
