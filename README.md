@@ -68,6 +68,7 @@ Admin panel: http://localhost:8000/admin. To connect **Claude.ai** you need publ
 | 7 | [Admin panel](docs/07-admin-panel.md) | Screens and admin tasks |
 | 8 | [Production checklist & roadmap](docs/08-production-checklist.md) | What to do before real client data, next steps |
 | 9 | [**Hosting the prototype (HTTPS for Claude.ai)**](docs/09-deploy-prototype.md) | Tunnel from your PC, or a small cloud server with Docker + automatic HTTPS |
+| 10 | [**MonetaDemo: local SQL Server database**](docs/10-moneta-demo-database.md) | Moneta-like tables, views, functions and stored procedures for SSMS, with a read-only `ai_api` layer |
 
 ## Repository layout
 
@@ -80,6 +81,7 @@ gateway/            REST API + OAuth 2.1 authorization server + admin panel (Fas
   admin/            server-rendered admin panel (no JavaScript, strict CSP)
 mcp_server/         MCP server (official Python SDK v2, Streamable HTTP, token verification, token exchange)
 sql/mssql/          SQL Server scripts: database, least-privilege logins, schema, ledger audit, Moneta mapping example
+sql/moneta_demo/    MonetaDemo: Moneta-like ERP database (tables, views, functions, procedures, demo data)
 tests/              pytest suite (runs on SQLite or SQL Server)
 scripts/e2e_demo.py end-to-end client that behaves like Claude.ai
 deploy/, Dockerfile, docker-compose.yml
