@@ -67,6 +67,7 @@ Admin panel: http://localhost:8000/admin. To connect **Claude.ai** you need publ
 | 6 | [REST API reference](docs/06-rest-api.md) | Endpoints, payloads, errors |
 | 7 | [Admin panel](docs/07-admin-panel.md) | Screens and admin tasks |
 | 8 | [Production checklist & roadmap](docs/08-production-checklist.md) | What to do before real client data, next steps |
+| 9 | [**Hosting the prototype (HTTPS for Claude.ai)**](docs/09-deploy-prototype.md) | Tunnel from your PC, or a small cloud server with Docker + automatic HTTPS |
 
 ## Repository layout
 

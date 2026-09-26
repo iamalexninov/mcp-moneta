@@ -105,7 +105,7 @@ Expected: `35 passed`.
 
 ## 5. Test with real Claude.ai (Free plan)
 
-Claude.ai runs in Anthropic's cloud, so it needs public HTTPS URLs for your PC.
+Claude.ai runs in Anthropic's cloud, so it needs public HTTPS URLs for your PC. If tunnels are blocked (e.g. on a corporate network) or you want a stable URL, host it on a small server instead: [09-deploy-prototype.md](09-deploy-prototype.md).
 
 1. Open **two more terminals** and start one tunnel in each:
    ```powershell

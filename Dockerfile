@@ -1,5 +1,6 @@
 # One image, two entrypoints (gateway / mcp). Non-root, no build tools at runtime.
-FROM python:3.12-slim
+# bookworm pinned: Microsoft's ODBC repo below targets Debian 12
+FROM python:3.12-slim-bookworm
 
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PIP_NO_CACHE_DIR=1
 
@@ -16,7 +17,7 @@ COPY requirements.txt .
 RUN pip install -r requirements.txt
 COPY gateway ./gateway
 COPY mcp_server ./mcp_server
-RUN mkdir -p /app/keys && chown app:app /app/keys
+RUN mkdir -p /app/keys /app/data && chown app:app /app/keys /app/data
 USER app
 
 EXPOSE 8000 8001

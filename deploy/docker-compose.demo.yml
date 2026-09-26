@@ -1,0 +1,54 @@
+# Internet-facing PROTOTYPE on one small Linux server: gateway + MCP server +
+# Caddy (automatic HTTPS). SQLite instead of SQL Server, demo data only.
+# Guide: docs/09-deploy-prototype.md
+#
+#   cp deploy/demo.env.example .env      # then edit PUBLIC_HOST + secret
+#   docker compose -f deploy/docker-compose.demo.yml up -d --build
+services:
+  gateway:
+    build: ..
+    env_file: ../.env
+    environment:
+      GATEWAY_ENVIRONMENT: staging
+      GATEWAY_PUBLIC_URL: https://${PUBLIC_HOST:?set PUBLIC_HOST in .env}
+      GATEWAY_MCP_RESOURCE_URL: https://${PUBLIC_HOST}/mcp
+      GATEWAY_DATABASE_URL: sqlite:////app/data/moneta.db
+      GATEWAY_KEYS_DIR: /app/keys
+    volumes:
+      - gateway-keys:/app/keys
+      - gateway-data:/app/data
+    restart: unless-stopped
+    networks: [internal]
+
+  mcp:
+    build: ..
+    command: ["python", "-m", "mcp_server.server"]
+    env_file: ../.env
+    environment:
+      MCP_HOST: 0.0.0.0
+      MCP_PUBLIC_URL: https://${PUBLIC_HOST}/mcp
+      MCP_ISSUER_URL: https://${PUBLIC_HOST}
+      MCP_GATEWAY_INTERNAL_URL: http://gateway:8000
+    depends_on: [gateway]
+    restart: unless-stopped
+    networks: [internal]
+
+  caddy:
+    image: caddy:2
+    ports: ["80:80", "443:443"]
+    environment:
+      PUBLIC_HOST: ${PUBLIC_HOST}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+    depends_on: [gateway, mcp]
+    restart: unless-stopped
+    networks: [internal]
+
+networks:
+  internal: {}
+
+volumes:
+  gateway-keys:
+  gateway-data:
+  caddy-data:

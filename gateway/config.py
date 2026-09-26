@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="GATEWAY_", env_file=".env", extra="ignore")
 
     # "dev" relaxes a few transport rules (plain HTTP cookies on localhost).
+    # "staging" = internet-facing prototype: full hardening, but SQLite allowed.
     # Anything else is treated as production and hardening is enforced.
     environment: str = "dev"
 
@@ -88,8 +89,8 @@ class Settings(BaseSettings):
             problems.append("GATEWAY_MCP_RESOURCE_URL must be https://")
         if self.session_secret.startswith("dev-only"):
             problems.append("GATEWAY_SESSION_SECRET must be set to a random value")
-        if self.database_url.startswith("sqlite"):
-            problems.append("SQLite is for development only; use SQL Server")
+        if self.database_url.startswith("sqlite") and self.environment != "staging":
+            problems.append("SQLite is for development/staging only; use SQL Server")
         if problems:
             raise RuntimeError("Unsafe production configuration: " + "; ".join(problems))
 
