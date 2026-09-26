@@ -12,6 +12,7 @@ from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
 from .admin.routes import router as admin_router
+from .api.moneta_routes import router as moneta_router
 from .api.routes import router as api_router
 from .config import get_settings
 from .db import init_db
@@ -58,6 +59,7 @@ def create_app() -> FastAPI:
     app.mount("/static", StaticFiles(directory=str(Path(__file__).parent / "admin" / "static")), name="static")
     app.include_router(oauth_router)
     app.include_router(api_router)
+    app.include_router(moneta_router)
     app.include_router(admin_router)
 
     @app.get("/", include_in_schema=False)

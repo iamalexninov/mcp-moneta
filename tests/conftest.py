@@ -12,6 +12,11 @@ os.environ["GATEWAY_DATABASE_URL"] = os.environ.get("TEST_DATABASE_URL", f"sqlit
 os.environ.pop("GATEWAY_DB_SCHEMA", None)
 os.environ["GATEWAY_AUTO_CREATE_TABLES"] = "true"
 os.environ["GATEWAY_KEYS_DIR"] = f"{_tmp}/keys"
+# Set TEST_MONETA_ODBC (ODBC connection string to a Test_Ninov-like database) to run tests/test_moneta.py.
+if os.environ.get("TEST_MONETA_ODBC"):
+    os.environ["GATEWAY_ERP_ODBC"] = os.environ["TEST_MONETA_ODBC"]
+else:
+    os.environ.pop("GATEWAY_ERP_ODBC", None)
 
 import pytest  # noqa: E402
 from fastapi.testclient import TestClient  # noqa: E402

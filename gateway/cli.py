@@ -6,6 +6,7 @@
   python -m gateway.cli seed-demo --tenant "Acme Ltd"
   python -m gateway.cli rotate-keys
   python -m gateway.cli verify-audit
+  python -m gateway.cli check-moneta             # test the connection to the Moneta tables
 """
 
 import argparse
@@ -107,6 +108,19 @@ def cmd_seed(a):
     print(f"Seeded demo data for '{a.tenant}'")
 
 
+def cmd_check_moneta(a):
+    """Test the GATEWAY_ERP_ODBC connection and show what the API will see."""
+    import json
+
+    from .services import moneta
+
+    try:
+        info = moneta.status()
+    except Exception as e:  # show the real driver/connection error to the operator
+        sys.exit(f"Could not connect to the Moneta database: {getattr(e, 'detail', e)}")
+    print(json.dumps(info, indent=2, ensure_ascii=False, default=str))
+
+
 def cmd_verify_audit(a):
     with session_scope() as db:
         ok, broken = audit.verify_chain(db)
@@ -131,8 +145,9 @@ def main(argv=None):
     sd.set_defaults(fn=cmd_seed)
     sub.add_parser("rotate-keys").set_defaults(fn=lambda a: print(f"New signing key: {generate_key().kid}"))
     sub.add_parser("verify-audit").set_defaults(fn=cmd_verify_audit)
+    sub.add_parser("check-moneta").set_defaults(fn=cmd_check_moneta)
     a = p.parse_args(argv)
-    if a.cmd != "init-db" and get_settings().auto_create_tables:
+    if a.cmd not in ("init-db", "check-moneta") and get_settings().auto_create_tables:
         init_db()
     a.fn(a)
 

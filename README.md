@@ -69,6 +69,7 @@ Admin panel: http://localhost:8000/admin. To connect **Claude.ai** you need publ
 | 8 | [Production checklist & roadmap](docs/08-production-checklist.md) | What to do before real client data, next steps |
 | 9 | [**Hosting the prototype (HTTPS for Claude.ai)**](docs/09-deploy-prototype.md) | Tunnel from your PC, or a small cloud server with Docker + automatic HTTPS |
 | 10 | [**MonetaDemo: local SQL Server database**](docs/10-moneta-demo-database.md) | Moneta-like tables, views, functions and stored procedures for SSMS, with a read-only `ai_api` layer |
+| 11 | [**Connect your Moneta tables (Test_Ninov)**](docs/11-connect-moneta-tables.md) | One `.env` line, `check-moneta`, and read-only GET methods + Claude.ai tools over N_Contragent, N_Item, D_SaleInvoiceHeader/Line |
 
 ## Repository layout
 

@@ -32,6 +32,12 @@ class Settings(BaseSettings):
     # runtime login has no DDL rights and tables come from sql/mssql/*.sql.
     auto_create_tables: bool = True
 
+    # Read-only connection to a Moneta database (e.g. the local Test_Ninov sample),
+    # as a raw ODBC connection string. Example for SQL Server LocalDB:
+    #   Driver={ODBC Driver 18 for SQL Server};Server=(localdb)\MSSQLLocalDB;Database=Test_Ninov;Trusted_Connection=yes;TrustServerCertificate=yes
+    erp_odbc: str | None = None
+    erp_query_timeout: int = 15  # seconds per query
+
     # Directory holding the ES256 signing keys (created on first start).
     keys_dir: str = "./keys"
 
