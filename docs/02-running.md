@@ -56,8 +56,8 @@ TEST_DATABASE_URL="mssql+pyodbc://sa:<pw>@localhost:1433/MonetaAITest?driver=ODB
 Claude.ai connects from Anthropic's cloud, so `localhost` is not reachable. For a demo, use two free Cloudflare quick tunnels. The authorization server and the MCP server each get their own public HTTPS URL.
 
 ```bash
-cloudflared tunnel --url http://localhost:8000     # prints https://<a>.trycloudflare.com  (gateway)
-cloudflared tunnel --url http://localhost:8001     # prints https://<b>.trycloudflare.com  (MCP)
+cloudflared tunnel --url http://127.0.0.1:8000     # prints https://<a>.trycloudflare.com  (gateway)
+cloudflared tunnel --url http://127.0.0.1:8001     # prints https://<b>.trycloudflare.com  (MCP)
 ```
 
 Put the URLs in `.env` and restart both services:
@@ -70,7 +70,7 @@ MCP_ISSUER_URL=https://<a>.trycloudflare.com
 MCP_GATEWAY_INTERNAL_URL=http://localhost:8000
 ```
 
-Then follow [04 §4.3](04-mcp-server-and-claude.md#43-connect-claudeai-free-plan). ngrok works the same way (`ngrok http 8000`, `ngrok http 8001`).
+Then follow [04 §4.3](04-mcp-server-and-claude.md#43-connect-claudeai-free-plan). ngrok works the same way (`ngrok http 127.0.0.1:8000`, `ngrok http 127.0.0.1:8001`).
 
 > Quick-tunnel URLs change on each restart. Registered connections then break, and you must remove and re-add the connector in Claude. For a stable demo use a named Cloudflare tunnel or deploy (2.5).
 

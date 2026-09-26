@@ -109,9 +109,10 @@ Claude.ai runs in Anthropic's cloud, so it needs public HTTPS URLs for your PC. 
 
 1. Open **two more terminals** and start one tunnel in each:
    ```powershell
-   cloudflared tunnel --url http://localhost:8000     # copy the https://AAAA.trycloudflare.com URL
-   cloudflared tunnel --url http://localhost:8001     # copy the https://BBBB.trycloudflare.com URL
+   cloudflared tunnel --url http://127.0.0.1:8000     # copy the https://AAAA.trycloudflare.com URL
+   cloudflared tunnel --url http://127.0.0.1:8001     # copy the https://BBBB.trycloudflare.com URL
    ```
+   Use `127.0.0.1`, not `localhost`: on Windows cloudflared resolves `localhost` to IPv6 `[::1]`, where the services don't listen (error: `dial tcp [::1]:8000 ... actively refused`). If `cloudflared` is "not recognized" after installing, open a new terminal or call it by full path: `& "C:\Program Files (x86)\cloudflared\cloudflared.exe" tunnel --url ...`
 2. Edit `.env` (AAAA = gateway tunnel, BBBB = MCP tunnel):
    ```ini
    GATEWAY_PUBLIC_URL=https://AAAA.trycloudflare.com
