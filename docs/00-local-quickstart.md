@@ -113,7 +113,7 @@ Claude.ai runs in Anthropic's cloud, so it needs public HTTPS URLs for your PC. 
    cloudflared tunnel --url http://127.0.0.1:8001     # copy the https://BBBB.trycloudflare.com URL
    ```
    Use `127.0.0.1`, not `localhost`: on Windows cloudflared resolves `localhost` to IPv6 `[::1]`, where the services don't listen (error: `dial tcp [::1]:8000 ... actively refused`). If `cloudflared` is "not recognized" after installing, open a new terminal or call it by full path: `& "C:\Program Files (x86)\cloudflared\cloudflared.exe" tunnel --url ...`
-2. Edit `.env` (AAAA = gateway tunnel, BBBB = MCP tunnel):
+2. Edit `.env` (AAAA = gateway tunnel, BBBB = MCP tunnel). Quick tunnels need **no Cloudflare account or credentials**; the only thing that goes into `.env` is these public URLs. They are required: if they still say `http://localhost…`, Claude.ai can't reach your login server and fails with "Couldn't register with … sign-in service".
    ```ini
    GATEWAY_PUBLIC_URL=https://AAAA.trycloudflare.com
    GATEWAY_MCP_RESOURCE_URL=https://BBBB.trycloudflare.com/mcp
